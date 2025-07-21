@@ -1,0 +1,65 @@
+name: Backend Tests
+
+# Déclenche les tests sur push et pull request vers main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Service MongoDB
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Récupérer le code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Installer Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: "backend/package-lock.json"
+
+      # Aller dans le dossier backend
+      - name: Change to backend directory
+        run: cd backend
+
+      # Installer les dépendances du backend
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm test
+
+      # Attendre que MongoDB soit prêt
+      - name: Wait for MongoDB
+        run: |
+          until mongosh --eval "print('MongoDB is ready')"; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+
+      # Lancer les tests du backend
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm test
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://localhost:27017/test_database
+          JWT_SECRET: test-jwt-secret-key
