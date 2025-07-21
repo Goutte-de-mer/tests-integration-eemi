@@ -22,19 +22,16 @@ async function generateUsers(count = 20) {
   for (let i = 0; i < count; i++) {
     let userName, email;
 
-    // S'assurer de l'unicité des userNames
     do {
       userName = faker.internet.username();
     } while (usedUserNames.has(userName));
     usedUserNames.add(userName);
 
-    // S'assurer de l'unicité des emails
     do {
       email = faker.internet.email();
     } while (usedEmails.has(email));
     usedEmails.add(email);
 
-    // Générer un mot de passe
     const plainPassword = faker.internet.password({ length: 12 });
     const hashedPassword = await hashPassword(plainPassword);
 
@@ -44,28 +41,12 @@ async function generateUsers(count = 20) {
       password: hashedPassword,
     });
 
-    // Log pour les tests (optionnel)
+    // Log pour les tests
     console.log(`${userName} | ${email} | ${plainPassword}`);
   }
 
   return users;
 }
-
-// Créer quelques utilisateurs de test fixes
-// async function createTestUsers() {
-//   return [
-//     {
-//       userName: "admin",
-//       email: "admin@test.com",
-//       password: await hashPassword("admin123"),
-//     },
-//     {
-//       userName: "user1",
-//       email: "user1@test.com",
-//       password: await hashPassword("password123"),
-//     },
-//   ];
-// }
 
 // Charger toutes les fixtures
 async function loadFixtures() {
@@ -76,12 +57,7 @@ async function loadFixtures() {
 
     // Nettoyer les utilisateurs existants
     await User.deleteMany({});
-    console.log("🧹 Utilisateurs existants supprimés");
-
-    // Créer utilisateurs de test
-    // const testUsers = await createTestUsers();
-    // await User.insertMany(testUsers);
-    // console.log(`✅ ${testUsers.length} utilisateurs de test créés`);
+    console.log("Utilisateurs existants supprimés");
 
     // Créer utilisateurs aléatoires
     const randomUsers = await generateUsers(15);
@@ -90,12 +66,12 @@ async function loadFixtures() {
 
     // Compter le total
     const totalUsers = await User.countDocuments();
-    console.log(`🎉 Total: ${totalUsers} utilisateurs dans la base`);
+    console.log(`Total: ${totalUsers} utilisateurs dans la base`);
   } catch (error) {
-    console.error("❌ Erreur:", error);
+    console.error("Erreur:", error);
   } finally {
     await mongoose.disconnect();
-    console.log("🔌 Connexion fermée");
+    console.log("Connexion fermée");
     process.exit();
   }
 }
