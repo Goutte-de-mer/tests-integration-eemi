@@ -41,5 +41,5 @@ jobs:
         run: npm test
         env:
           NODE_ENV: test
-          MONGODB_URI: mongodb://localhost:27017/test_database
-          JWT_SECRET: test-jwt-secret-key
+          CONNECTION_STRING: mongodb://localhost:27017/test_database
+          TOKEN_SECRET: test-jwt-secret-key
