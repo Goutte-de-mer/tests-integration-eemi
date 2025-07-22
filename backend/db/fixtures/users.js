@@ -66,15 +66,12 @@ async function generateUsers(count = 20) {
 // Charger toutes les fixtures
 async function loadFixtures() {
   try {
-    // Connexion
     await mongoose.connect(CONNECTION_STRING);
     console.log("✅ Connecté à MongoDB");
 
-    // Nettoyer les utilisateurs existants
     await User.deleteMany({});
     console.log("Utilisateurs existants supprimés");
 
-    // Créer utilisateurs aléatoires
     const randomUsers = await generateUsers(15);
     await User.insertMany(randomUsers);
     console.log(`✅ ${randomUsers.length} utilisateurs aléatoires créés`);
@@ -82,7 +79,6 @@ async function loadFixtures() {
     await createTestUsers();
     console.log("✅ Utilisateurs de test créés");
 
-    // Compter le total
     const totalUsers = await User.countDocuments();
     console.log(`Total: ${totalUsers} utilisateurs dans la base`);
   } catch (error) {
@@ -94,7 +90,6 @@ async function loadFixtures() {
   }
 }
 
-// Exporter les fonctions
 module.exports = {
   loadFixtures,
   generateUsers,

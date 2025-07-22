@@ -1,8 +1,13 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-const connectionString =
-  process.env.CONNECTION_STRING || "mongodb://localhost:27017/test_database";
+if (process.env.NODE_ENV === "test") {
+  require("dotenv").config({ path: ".env.test" });
+} else {
+  require("dotenv").config();
+}
+
+const connectionString = process.env.CONNECTION_STRING;
 
 mongoose
   .connect(connectionString, { connectTimeoutMS: 2000 })

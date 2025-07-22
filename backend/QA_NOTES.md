@@ -80,7 +80,6 @@ TOKEN_SECRET=test-jwt-secret-key
 
 - Node.js LTS
 - MongoDB
-- Variables d'environnement injectées
 - Working directory: `backend/`
 
 ## Couverture des tests

@@ -1,4 +1,3 @@
-// src/__tests__/LoginForm.test.js
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LoginForm from "@/components/LoginForm";
@@ -44,7 +43,6 @@ describe("LoginForm - Tests Unitaires", () => {
     loginAction.mockResolvedValue({ success: true });
     render(<LoginForm setSuccess={mockSetSuccess} />);
 
-    // Remplir les champs requis
     await user.type(
       screen.getByLabelText(/adresse email/i),
       "test@example.com"
@@ -54,7 +52,6 @@ describe("LoginForm - Tests Unitaires", () => {
     const submitButton = screen.getByRole("button", { name: /se connecter/i });
     await user.click(submitButton);
 
-    // Tester que setSuccess a été appelée (comportement observable)
     await waitFor(() => {
       expect(mockSetSuccess).toHaveBeenCalledTimes(1);
     });
