@@ -26,11 +26,31 @@ npm test             # Exécution des tests
 
 ### Variables d'environnement
 
-**Backend (.env.test)**
+**Configuration environnement de test**
+
+Le choix de l'environnement se fait automatiquement dans `connection.js` :
+
+```javascript
+if (process.env.NODE_ENV === "test") {
+  require("dotenv").config({ path: ".env.test" });
+} else {
+  require("dotenv").config();
+}
+```
+
+**Tests locaux (.env.test - non commité)**
 
 ```bash
 NODE_ENV=test
-MONGODB_URI=mongodb://localhost:27017/test_database
+CONNECTION_STRING=mongodb+srv://user:password@cluster.net/test_database
+TOKEN_SECRET=test-jwt-secret-key
+```
+
+**Tests CI/CD (variables dans pipeline)**
+
+```bash
+NODE_ENV=test
+CONNECTION_STRING=mongodb://localhost:27017/test_database
 TOKEN_SECRET=test-jwt-secret-key
 ```
 
@@ -154,6 +174,10 @@ jobs:
 
       - name: Run tests
         run: npm test
+        env:
+          NODE_ENV: test
+          CONNECTION_STRING: mongodb://localhost:27017/test_database
+          TOKEN_SECRET: test-jwt-secret-key
 ```
 
 ### Résultats des tests
@@ -222,6 +246,27 @@ Ran all test suites.
 - **Hashage des mots de passe** (bcrypt)
 - **Tokens JWT** pour l'authentification
 - **Variables d'environnement** pour les secrets
+- **Isolation des credentials** (`.env.test` non commité)
+
+## Gestion des environnements
+
+### Configuration centralisée
+
+La logique de choix d'environnement est centralisée dans `connection.js`, éliminant le besoin de répéter le chargement de `.env.test` dans le fichier de test.
+
+### Stratégie hybride locale/CI
+
+**Tests locaux :**
+
+- Utilisation d'une vraie base de données de test MongoDB
+- Fichier `.env.test` non commité (sécurité des credentials)
+- Isolation complète de l'environnement de production
+
+**Tests CI/CD :**
+
+- Service MongoDB temporaire via GitHub Actions
+- Variables d'environnement définies directement dans la pipeline
+- Pas de dépendance à des services externes
 
 ## Commandes utiles
 
@@ -237,6 +282,8 @@ npm run fixtures                   # Créer des utilisateurs de test
 **Défis rencontrés :**
 
 - Configuration des variables d'environnement pour les tests
+- **Gestion des environnements** : Comprendre quelles variables étaient utilisées dans quel contexte et où centraliser la logique de chargement des fichiers `.env`
+- **Ordre de chargement** : Déterminer quel fichier devait gérer le choix entre `.env` et `.env.test` pour éviter les conflits
 - Gestion asynchrone des opérations de base de données avec MongoDB
 - Mock des server actions Next.js dans les tests frontend
 - Timing des connexions MongoDB dans l'environnement de test
