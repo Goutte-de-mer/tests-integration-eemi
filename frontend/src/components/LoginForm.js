@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { loginAction } from "@/lib/actions";
 
-const LoginForm = ({ setSuccess, success }) => {
+const LoginForm = ({ setSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 

@@ -9,7 +9,7 @@ export default function Home() {
       {success ? (
         <h1 className="text-center text-3xl font-medium">Bienvenue !</h1>
       ) : (
-        <LoginForm setSuccess={setSuccess} success={success} />
+        <LoginForm setSuccess={setSuccess} />
       )}
     </main>
   );
