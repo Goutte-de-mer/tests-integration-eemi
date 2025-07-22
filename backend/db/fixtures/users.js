@@ -11,6 +11,22 @@ async function hashPassword(password) {
   return await bcrypt.hash(password, 10);
 }
 
+async function createTestUsers() {
+  const testUsers = [
+    {
+      userName: "admin",
+      email: "admin@example.com",
+      password: await hashPassword("AdminPassword123!"),
+    },
+    {
+      userName: "testuser",
+      email: "test@example.com",
+      password: await hashPassword("TestPassword123!"),
+    },
+  ];
+  await User.insertMany(testUsers);
+}
+
 // Générer des utilisateurs
 async function generateUsers(count = 20) {
   const users = [];
@@ -64,6 +80,9 @@ async function loadFixtures() {
     await User.insertMany(randomUsers);
     console.log(`✅ ${randomUsers.length} utilisateurs aléatoires créés`);
 
+    await createTestUsers();
+    console.log("✅ Utilisateurs de test créés");
+
     // Compter le total
     const totalUsers = await User.countDocuments();
     console.log(`Total: ${totalUsers} utilisateurs dans la base`);
@@ -80,7 +99,7 @@ async function loadFixtures() {
 module.exports = {
   loadFixtures,
   generateUsers,
-  //   createTestUsers,
+  createTestUsers,
 };
 
 // Lancer si exécuté directement
