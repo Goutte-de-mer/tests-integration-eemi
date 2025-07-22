@@ -21,7 +21,9 @@ const LoginForm = () => {
             <p className="text-gray-600">Connectez-vous à votre compte</p>
           </div>
 
-          {error && <p>{error}</p>}
+          {error && (
+            <p className="text-center text-red-400 mb-2 font-medium">{error}</p>
+          )}
 
           {/* Form */}
           <div className="px-8 pb-8">
@@ -30,7 +32,7 @@ const LoginForm = () => {
                 const result = await loginAction(formData);
                 if (result?.error) {
                   setError(result.error);
-                  console.error(result.error);
+                  // console.log(result.error);
                 }
               }}
               className="space-y-6"
