@@ -7,15 +7,14 @@ export async function loginAction(formData) {
   const email = formData.get("email");
   const password = formData.get("password");
 
-  // Validation basique
   if (!email || !password) {
     return {
+      success: false,
       error: "Email et mot de passe requis",
     };
   }
 
   try {
-    // Appel à ton API Express
     const response = await fetch(`${process.env.API_URL}/user/login`, {
       method: "POST",
       headers: {
@@ -28,6 +27,7 @@ export async function loginAction(formData) {
     if (!response.ok) {
       const errorData = await response.json();
       return {
+        success: false,
         error: errorData.error || "Erreur de connexion",
       };
     }
@@ -44,7 +44,7 @@ export async function loginAction(formData) {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
-          maxAge: 3600000, // 1 heure (même que ton Express)
+          maxAge: 3600000, // 1 heure
           path: "/",
         });
       }
@@ -52,12 +52,12 @@ export async function loginAction(formData) {
   } catch (error) {
     console.error("Login error:", error);
     return {
+      success: false,
       error: "Erreur serveur, veuillez réessayer",
     };
   }
 
-  // Redirection après succès
-  redirect("/connected");
+  return { success: true };
 }
 
 // Action pour logout

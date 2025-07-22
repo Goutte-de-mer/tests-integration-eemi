@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { loginAction } from "@/lib/actions";
 
-const LoginForm = () => {
+const LoginForm = ({ setSuccess, success }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
@@ -30,9 +30,11 @@ const LoginForm = () => {
             <form
               action={async (formData) => {
                 const result = await loginAction(formData);
-                if (result?.error) {
-                  setError(result.error);
+                if (result?.success) {
+                  setSuccess((prevState) => !prevState);
                   // console.log(result.error);
+                } else {
+                  setError(result.error);
                 }
               }}
               className="space-y-6"

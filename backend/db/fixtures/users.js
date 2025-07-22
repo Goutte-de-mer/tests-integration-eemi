@@ -6,7 +6,6 @@ const { faker } = require("@faker-js/faker");
 
 const CONNECTION_STRING = process.env.CONNECTION_STRING;
 
-// Hasher un mot de passe
 async function hashPassword(password) {
   return await bcrypt.hash(password, 10);
 }
