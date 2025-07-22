@@ -1,6 +1,6 @@
-if (process.env.NODE_ENV === "test") {
-  require("dotenv").config({ path: ".env.test" });
-}
+// if (process.env.NODE_ENV === "test") {
+//   require("dotenv").config({ path: ".env.test" });
+// }
 const request = require("supertest");
 const app = require("../app");
 const User = require("../db/models/User");

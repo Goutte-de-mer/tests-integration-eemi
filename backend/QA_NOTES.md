@@ -7,9 +7,10 @@
 ```
 backend/
 ├── tests/
-│   └── login.test.js          # Tests d'authentification
-├── fixtures/
-│   └── loadFixtures.js        # Génération de données de test
+│   └── login.test.js          # Tests route login
+├── db/
+│   └── fixtures/
+│       └── users.js           # Donées fictives
 ├── .env.test                  # Variables d'environnement pour tests
 └── db/connection.js           # Connexion DB avec fallback pour tests
 ```
@@ -34,7 +35,6 @@ await User.insertMany([
     email: "admin@test.com",
     password: await hashPassword("admin123"),
   },
-  // ...
 ]);
 ```
 
@@ -58,7 +58,7 @@ await User.insertMany([
 ```bash
 NODE_ENV=test
 MONGODB_URI=mongodb://localhost:27017/test_database
-TOKEN_SECRET=test-jwt-secret-key-for-github-actions
+TOKEN_SECRET=test-jwt-secret-key
 ```
 
 **Isolation des environnements** :
@@ -71,16 +71,6 @@ TOKEN_SECRET=test-jwt-secret-key-for-github-actions
 
 ### Helpers et utilitaires
 
-**Helper actuel :**
-
-```javascript
-const hashPassword = async (password) => {
-  return await bcrypt.hash(password, 10);
-};
-```
-
-**Helpers disponibles mais non utilisés :**
-
 - `generateUsers(count)` - Génération avec Faker
 - `loadFixtures()` - Chargement complet de la DB
 
@@ -89,7 +79,7 @@ const hashPassword = async (password) => {
 ### Configuration
 
 - Node.js LTS
-- Service MongoDB 5.0
+- MongoDB
 - Variables d'environnement injectées
 - Working directory: `backend/`
 
@@ -97,9 +87,9 @@ const hashPassword = async (password) => {
 
 ### Scénarios couverts
 
-- ✅ Login réussi (200) - Token JWT valide retourné
-- ✅ Mot de passe incorrect (401) - Message d'erreur approprié
-- ✅ Utilisateur inconnu (404) - Email non trouvé
+- Login réussi (200) - Token JWT valide retourné
+- Mot de passe incorrect (401) - Mot de passe incorrect
+- Utilisateur inconnu (404) - Email inconnu
 
 ### Assertions
 
