@@ -108,7 +108,7 @@ const LoginForm = ({ setSuccess }) => {
             {/* Sign Up Link */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Vous n'avez pas de compte ?{" "}
+                {"Vous n'avez pas de compte ?"}
                 <a
                   href="#"
                   className="font-medium text-blue-600 hover:text-blue-500 transition-colors"

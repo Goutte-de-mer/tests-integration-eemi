@@ -1,0 +1,214 @@
+name: CI Pipeline
+
+# Déclenchement du pipeline
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Variables d'environnement globales
+env:
+  NODE_ENV: test
+  CONNECTION_STRING: mongodb://localhost:27017/test_database
+  TOKEN_SECRET: test-jwt-secret-key
+
+jobs:
+  # ============================================
+  # JOB 1: LINT - Vérification du code
+  # ============================================
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    # Matrice pour tester sur plusieurs versions de Node
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+        project: ['backend', 'frontend']
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ${{ matrix.project }}
+        run: npm ci
+      
+      - name: Run ESLint
+        working-directory: ${{ matrix.project }}
+        run: npm run lint
+
+  # ============================================
+  # JOB 2: TESTS UNITAIRES - Frontend
+  # ============================================
+  test-unit-frontend:
+    name: Unit Tests (Frontend)
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Run unit tests
+        working-directory: frontend
+        run: npm test -- --coverage
+      
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage-${{ matrix.node-version }}
+          path: frontend/coverage
+          retention-days: 7
+
+  # ============================================
+  # JOB 3: TESTS API - Backend
+  # ============================================
+  test-api-backend:
+    name: API Tests (Backend)
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+      fail-fast: false
+    
+    # Service MongoDB pour les tests
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      
+      - name: Wait for MongoDB
+        run: |
+          echo "Waiting for MongoDB to be ready..."
+          timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" 2>/dev/null; do sleep 2; done'
+          echo "MongoDB is ready!"
+      
+      - name: Run API tests
+        working-directory: backend
+        run: npm test
+        env:
+          NODE_ENV: test
+          CONNECTION_STRING: mongodb://localhost:27017/test_database
+          TOKEN_SECRET: test-jwt-secret-key
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results-${{ matrix.node-version }}
+          path: backend/coverage
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ============================================
+  # JOB 4: BUILD - Frontend
+  # ============================================
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+      fail-fast: false
+    
+    # Condition: ne build que si les tests passent
+    needs: [test-unit-frontend]
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-build-${{ matrix.node-version }}
+          path: frontend/.next
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ============================================
+  # JOB 5: RÉSUMÉ - Job final qui dépend de tous
+  # ============================================
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit-frontend, test-api-backend, build]
+    
+    # Condition: ne s'exécute que si tous les jobs précédents réussissent
+    if: success()
+    
+    steps:
+      - name: All checks passed
+        run: |
+          echo "✅ All CI checks passed successfully!"
+          echo "Lint: ✅"
+          echo "Unit Tests: ✅"
+          echo "API Tests: ✅"
+          echo "Build: ✅"
+
